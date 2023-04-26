@@ -17,4 +17,4 @@ INSERT INTO person (LastName, FirstName, Gender, DateOfBirth, DateOfDeath)
 INSERT INTO person (LastName, FirstName, Gender, DateOfBirth, DateOfDeath) 
     VALUES ('Zor-El', 'Kara', 'F', '1985-02-27', NULL);
 INSERT INTO person (LastName, FirstName, Gender, DateOfBirth, DateOfDeath) 
-    VALUES ('Kent', 'Clark',  'M', '1975-02-27', NULL);
+    VALUES ('Kent',  'Clark', 'M', '1975-02-27', NULL);
