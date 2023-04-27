@@ -5,16 +5,20 @@ import datetime as dt
 
 # Connect to the SQLite Database
 con = sql.connect("sqlite.db")
-db = []
 days = [*range(1,13)]
 months = [*range(1,32)]
 years = [*range(1900, dt.date.today().year + 1)]
+
+COLS = 6
+rows = 0
+
 genderValues = {'M', 'F', 'X'}
 
 # Functions
 def print_persons():
     db = con.cursor().execute("SELECT * FROM person").fetchall()
-    for i in range(len(db)):
+    rows = len(db)
+    for i in range(rows):
         headerA = tt.Frame(master=table, border=1, borderwidth=1)
         headerA.grid(row=i+1, column=0)
         hALabel = tt.Label(master=headerA, text=db[i][0])
@@ -39,25 +43,86 @@ def print_persons():
         headerE.grid(row=i+1, column=4)
         labelE = tt.Label(master=headerE, text=db[i][5])
         labelE.pack()
+    return rows
 
 def submit_person():
+
+    print(subLName.get())
+    print(subFName.get())
+    print(genderVal.get())
+    print(yearDOB.get())
+    print(monDOB.get())
+    print(dayDOB.get())
+    print(yearDOD.get())
+    print(monDOD.get())
+    print(dayDOD.get())
+
     con.cursor().execute("INSERT INTO person (LastName, FirstName, Gender, DateOfBirth, DateOfDeath) VALUES (?, ?, ?, ?, ?);", \
                         (subLName.get(), subFName.get(), genderVal.get(), \
                         yearDOB.get() + "-" + monDOB.get() + "-" + dayDOB.get(), \
                         yearDOD.get() + "-" + monDOD.get() + "-" + dayDOD.get()))
     con.commit()
-    print_persons()
+    return print_persons()
 
-# Window elements
+# Window elements and submit
 window = tk.Tk()
 window.title("Python SQLite Project")
-submit = tt.Frame(master=window)
-table = tt.Frame(master=window)
+submit = tk.Canvas(master=window)
 
-# Populate the initial database
-print_persons()
+# Table setup
+    ## Initialize the table
+tableFrame = tt.Frame(master=window)
+tableCanvas = tk.Canvas(master=tableFrame)
+tableCanvas.grid(row=0, column=0)
+tableScrollY = tt.Scrollbar(master=tableFrame, orient='vertical', command=tableCanvas.yview)
+tableScrollY.grid(row=0, column=1, sticky='ns')
+tableCanvas.config(yscrollcommand=tableScrollY.set)
+table = tt.Frame(master=tableCanvas)
+table.pack()
 
-# Submit frame
+# Result canvas
+    ## ID
+headerID = tt.Frame(master=table)
+headerID.grid(row=0, column=0, padx=20, pady=10)
+resLabelID = tt.Label(master=headerID, text="ID")
+resLabelID.pack()
+
+    ## Name
+headerName = tt.Frame(master=table)
+headerName.grid(row=0, column=1, padx=20, pady=10)
+resLabelName = tt.Label(master=headerName, text="Name")
+resLabelName.pack()
+
+    ## Gender
+headerGender = tt.Frame(master=table)
+headerGender.grid(row=0, column=2, padx=20, pady=10)
+resLabelGender = tt.Label(master=headerGender, text="Gender")
+resLabelGender.pack()
+
+    ## Date of Birth
+headerDOB = tt.Frame(master=table)
+headerDOB.grid(row=0, column=3, padx=20, pady=10)
+resLabelDOB = tt.Label(master=headerDOB, text="Date of Birth")
+resLabelDOB.pack()
+
+    ## Date of Death
+headerDOD = tt.Frame(master=table)
+headerDOD.grid(row=0, column=4, padx=20, pady=10)
+resLabelDOD = tt.Label(master=headerDOD, text="Date of Death")
+resLabelDOD.pack()
+
+    ## Populate the initial database
+rows = print_persons()
+
+tableCanvas.create_window((0,0), window=table)
+table.update_idletasks()
+tableBox = tableCanvas.bbox('all')
+w = tableBox[2] - tableBox[0]
+h = tableBox[3] - tableBox[1]
+dh = int((h/rows) * 16)
+tableCanvas.configure(scrollregion=tableBox, height=dh, width=w)
+
+# Submit canvas
     ## First name entry
 subLabelFName = tt.Label(master=submit, text="First Name: ")
 subLabelFName.grid(row=0, column=0)
@@ -71,7 +136,7 @@ subLName = tt.Entry(master=submit, width=18)
 subLName.grid(row=1, column=1)
 
     ## Gender entry
-subLabelGender = tt.Label(master=submit, text="Last Name: ")
+subLabelGender = tt.Label(master=submit, text="Gender: ")
 subLabelGender.grid(row=2, column=0)
 subGender = tt.Frame(master=submit)
 genderVal = tk.StringVar()
@@ -125,42 +190,10 @@ subDOD.grid(row=4, column=1)
 
 button = tt.Button(master=window, text="Submit", command=submit_person)
 
-# Result frame
-    ## ID
-headerID = tt.Frame(master=table)
-headerID.grid(row=0, column=0, padx=20, pady=10)
-resLabelID = tt.Label(master=headerID, text="ID")
-resLabelID.pack()
-
-    ## Name
-headerName = tt.Frame(master=table)
-headerName.grid(row=0, column=1, padx=20, pady=10)
-resLabelName = tt.Label(master=headerName, text="Name")
-resLabelName.pack()
-
-    ## Gender
-headerGender = tt.Frame(master=table)
-headerGender.grid(row=0, column=2, padx=20, pady=10)
-resLabelGender = tt.Label(master=headerGender, text="Gender")
-resLabelGender.pack()
-
-    ## Date of Birth
-headerDOB = tt.Frame(master=table)
-headerDOB.grid(row=0, column=3, padx=20, pady=10)
-resLabelDOB = tt.Label(master=headerDOB, text="Date of Birth")
-resLabelDOB.pack()
-
-    ## Date of Death
-headerDOD = tt.Frame(master=table)
-headerDOD.grid(row=0, column=4, padx=20, pady=10)
-resLabelDOD = tt.Label(master=headerDOD, text="Date of Death")
-resLabelDOD.pack()
-
 # Pack the window
 submit.pack()
-table.pack()
+tableFrame.pack(expand=False, fill=None)
 button.pack()
-button2.pack()
 
 # Running the window
 window.mainloop()
