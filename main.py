@@ -9,9 +9,6 @@ days = [*range(1,13)]
 months = [*range(1,32)]
 years = [*range(1900, dt.date.today().year + 1)]
 
-COLS = 6
-rows = 0
-
 genderValues = {'M', 'F', 'X'}
 
 # Functions
@@ -47,27 +44,25 @@ def print_persons():
 
 def submit_person():
 
-    print(subLName.get())
-    print(subFName.get())
-    print(genderVal.get())
-    print(yearDOB.get())
-    print(monDOB.get())
-    print(dayDOB.get())
-    print(yearDOD.get())
-    print(monDOD.get())
-    print(dayDOD.get())
-
     con.cursor().execute("INSERT INTO person (LastName, FirstName, Gender, DateOfBirth, DateOfDeath) VALUES (?, ?, ?, ?, ?);", \
                         (subLName.get(), subFName.get(), genderVal.get(), \
                         yearDOB.get() + "-" + monDOB.get() + "-" + dayDOB.get(), \
                         yearDOD.get() + "-" + monDOD.get() + "-" + dayDOD.get()))
     con.commit()
-    return print_persons()
+    rows = print_persons()
+
+    table.update_idletasks()
+    tableBox = tableCanvas.bbox('all')
+    w = tableBox[2] - tableBox[0]
+    h = tableBox[3] - tableBox[1]
+    dh = int((h/rows) * 16)
+    tableCanvas.configure(scrollregion=tableBox, height=dh, width=w)
+    tableFrame.pack()
 
 # Window elements and submit
 window = tk.Tk()
 window.title("Python SQLite Project")
-submit = tk.Canvas(master=window)
+submit = tk.Frame(master=window)
 
 # Table setup
     ## Initialize the table
@@ -114,7 +109,7 @@ resLabelDOD.pack()
     ## Populate the initial database
 rows = print_persons()
 
-tableCanvas.create_window((0,0), window=table)
+tableCanvas.create_window((0,0), window=table, anchor='nw')
 table.update_idletasks()
 tableBox = tableCanvas.bbox('all')
 w = tableBox[2] - tableBox[0]
@@ -148,6 +143,7 @@ femaleRadio.grid(row=0, column=1)
 otherRadio = tt.Radiobutton(master=subGender, variable=genderVal, text="Other", value='X')
 otherRadio.grid(row=0, column=2)
 
+genderVal.set('X')
 subGender.grid(row=2, column=1)
 
     ## Date of Birth entry
@@ -192,7 +188,7 @@ button = tt.Button(master=window, text="Submit", command=submit_person)
 
 # Pack the window
 submit.pack()
-tableFrame.pack(expand=False, fill=None)
+tableFrame.pack()
 button.pack()
 
 # Running the window
