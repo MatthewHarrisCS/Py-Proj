@@ -2,6 +2,8 @@ import sqlite3 as sql
 import tkinter as tk
 import tkinter.ttk as tt
 import datetime as dt
+import matplotlib.pyplot as plt
+import matplotlib.backends.backend_tkagg as tkagg
 
 # Connect to the SQLite Database
 con = sql.connect("sqlite.db")
@@ -39,7 +41,7 @@ def _main():
     submit = tk.Frame(master=window)
 
     # Table setup
-        ## Initialize the table
+    # Initialize the table
     tableFrame = tt.Frame(master=window)
     tableCanvas = tk.Canvas(master=tableFrame, highlightthickness=0)
     tableCanvas.grid(row=0, column=0)
@@ -53,39 +55,40 @@ def _main():
     table.pack()
 
     # Result canvas
-        ## ID
+    # ID
     headerID = tt.Frame(master=table)
     headerID.grid(row=0, column=0, padx=20, pady=10)
     resLabelID = tt.Label(master=headerID, text="ID")
     resLabelID.pack()
 
-        ## Name
+    # Name
     headerName = tt.Frame(master=table)
     headerName.grid(row=0, column=1, padx=20, pady=10)
     resLabelName = tt.Label(master=headerName, text="Name")
     resLabelName.pack()
 
-        ## Gender
+    # Gender
     headerGender = tt.Frame(master=table)
     headerGender.grid(row=0, column=2, padx=20, pady=10)
     resLabelGender = tt.Label(master=headerGender, text="Gender")
     resLabelGender.pack()
 
-        ## Date of Birth
+    # Date of Birth
     headerDOB = tt.Frame(master=table)
     headerDOB.grid(row=0, column=3, padx=20, pady=10)
     resLabelDOB = tt.Label(master=headerDOB, text="Date of Birth")
     resLabelDOB.pack()
 
-        ## Date of Death
+    # Date of Death
     headerDOD = tt.Frame(master=table)
     headerDOD.grid(row=0, column=4, padx=20, pady=10)
     resLabelDOD = tt.Label(master=headerDOD, text="Date of Death")
     resLabelDOD.pack()
 
-        ## Populate the initial database
+    # Populate the initial database
     rows = print_persons(table)
 
+    # Create the table canvas and set the scroll dimensions
     tableCanvas.create_window((0,0), window=table, anchor='nw')
     table.update_idletasks()
     tableBox = tableCanvas.bbox('all')
@@ -95,45 +98,49 @@ def _main():
     tableCanvas.configure(scrollregion=tableBox, height=dh, width=w)
 
     # Submit canvas
-        ## First name entry
+    # First name entry
     subLabelFName = tt.Label(master=submit, text="First Name: ")
     subLabelFName.grid(row=0, column=0)
     subFName = tt.Entry(master=submit, width=18)
     subFName.grid(row=0, column=1)
 
-        ## Last name entry
+    # Last name entry
     subLabelLName = tt.Label(master=submit, text="Last Name: ")
     subLabelLName.grid(row=1, column=0)
     subLName = tt.Entry(master=submit, width=18)
     subLName.grid(row=1, column=1)
 
-        ## Gender entry
+    # Gender entry
     subLabelGender = tt.Label(master=submit, text="Gender: ")
     subLabelGender.grid(row=2, column=0)
     subGender = tt.Frame(master=submit)
     genderVal = tk.StringVar()
 
-    maleRadio = tt.Radiobutton(
-        master=subGender, 
-        variable=genderVal, 
-        text="Male", 
-        value='M')
+    # Male gender radio button
+    maleRadio = tt.Radiobutton(master=subGender, 
+                               variable=genderVal, 
+                               text="Male", value='M')
     maleRadio.grid(row=0, column=0)
+
+    # Female gender radio button
     femaleRadio = tt.Radiobutton(master=subGender, 
                                 variable=genderVal, 
                                 text="Female", 
                                 value='F')
     femaleRadio.grid(row=0, column=1)
+
+    # Unspecified gender radio button
     otherRadio = tt.Radiobutton(master=subGender, 
                                 variable=genderVal, 
                                 text="Other", 
                                 value='X')
     otherRadio.grid(row=0, column=2)
 
+    # Set the gender default to 'Other'
     genderVal.set('X')
     subGender.grid(row=2, column=1)
 
-        ## Date of Birth entry
+    # Date of Birth entry
     subLabelDOB= tt.Label(master=submit, 
                         text="Date of Birth: ")
     subLabelDOB.grid(row=3, column=0)
@@ -175,6 +182,7 @@ def _main():
 
     subDOD.grid(row=4, column=1)
 
+    # Submission button
     button = tt.Button(master=window, text="Submit", command=submit_person)
 
     # Pack the window
@@ -219,7 +227,7 @@ def print_persons(table: tt.Frame):
 def charges_window(id: int):
     db = con.cursor().execute("SELECT * FROM charge WHERE personID = "
                                + str(id)).fetchall()
-
+    
     chargesWindow = tk.Toplevel()
     chargesWindow.focus_set()
     chargesWindow.grab_set()
@@ -248,7 +256,35 @@ def charges_window(id: int):
         labelD.pack()
 
     chargesCanvas.pack()
-    chargesWindow.mainloop()
+    print("plotting")
+    plot(chargesWindow, id)
+    print("plotting out")
+
+
+def plot(window, id):
+    
+    db = con.cursor().execute("SELECT * FROM charge WHERE personID = " + str(id)).fetchall()
+    
+    def _quit():
+        plt.close('all')
+        print("looping out")
+        window.destroy()
+
+  
+    fig = plt.Figure(figsize = (5, 5),
+                 dpi = 100)
+  
+    y = [i**2 for i in range(101)]
+  
+    plot1 = fig.add_subplot(111)
+    plot1.plot(y)
+    canvas = tkagg.FigureCanvasTkAgg(fig, master = window)  
+    canvas.draw()
+  
+    canvas.get_tk_widget().pack()
+
+    window.protocol("WM_DELETE_WINDOW", _quit)
+    window.mainloop()
 
 # Run the program
 _main()
