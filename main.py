@@ -256,33 +256,63 @@ def charges_window(id: int):
         labelD.pack()
 
     chargesCanvas.pack()
-    print("plotting")
     plot(chargesWindow, id)
-    print("plotting out")
 
 
 def plot(window, id):
     
     db = con.cursor().execute("SELECT * FROM charge WHERE personID = " + str(id)).fetchall()
+
+    # Date format
+    f = '%Y-%m-%d'
     
+    # Redefine the window quit to close the plot beforehand (prevents freezing)
     def _quit():
         plt.close('all')
-        print("looping out")
         window.destroy()
+        
+    x = []
+    y = []
+    hist1 = {}
+    hist2 = {}
+    sum = 0
 
-  
-    fig = plt.Figure(figsize = (5, 5),
-                 dpi = 100)
-  
-    y = [i**2 for i in range(101)]
-  
-    plot1 = fig.add_subplot(111)
-    plot1.plot(y)
-    canvas = tkagg.FigureCanvasTkAgg(fig, master = window)  
-    canvas.draw()
-  
-    canvas.get_tk_widget().pack()
+    # Get the dates/amounts from the database
+    for i in range(len(db)):
+        x.append(dt.datetime.strptime(db[i][3], f))
+        y.append(db[i][2])
 
+    # Place the entries into a dictionary to sum values 
+    # of the same date on the Y axis
+    for xi, yi in zip(x, y):
+        sum += yi
+        print("Sum = " + str(sum))
+        print("xi = " + str(xi))
+        print("yi = " + str(yi))
+        hist1[xi] = hist1.get(xi, 0) + yi
+        hist2[xi] = hist2.get(xi, sum)
+
+    # Draw the graphs
+    fig1, ax1 = plt.subplots()
+    ax1.plot(hist1.keys(), hist1.values())
+    ax1.set(title="New Charges", xlabel="Dates", ylabel="$ Amount (USD)")
+    fig1.autofmt_xdate()
+    
+    fig2, ax2 = plt.subplots()
+    ax2.plot(hist2.keys(), hist2.values(), x)
+    ax2.set(title="Summed Charges", xlabel="Dates", ylabel="$ Amount (USD)")
+    fig2.autofmt_xdate()
+
+    # Add the graphs to the tkinter window
+    canvas1 = tkagg.FigureCanvasTkAgg(fig1, master=window)
+    canvas1.draw()
+    canvas1.get_tk_widget().pack()
+
+    canvas2 = tkagg.FigureCanvasTkAgg(fig2, master=window)
+    canvas2.draw()
+    canvas2.get_tk_widget().pack()
+
+    # Set the redefined window quit and start the main loop
     window.protocol("WM_DELETE_WINDOW", _quit)
     window.mainloop()
 

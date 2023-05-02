@@ -107,3 +107,4 @@ INSERT INTO charge (personID, amount, chargeDate, chargeType) VALUES (3, 456.78,
 INSERT INTO charge (personID, amount, chargeDate, chargeType) VALUES (3, 123.78, '1998-01-02', 'Personal');
 INSERT INTO charge (personID, amount, chargeDate, chargeType) VALUES (1, 456.12, '1988-01-01', 'Business');
 INSERT INTO charge (personID, amount, chargeDate, chargeType) VALUES (3, 123.78, '1998-01-02', 'Personal');
+INSERT INTO charge (personID, amount, chargeDate, chargeType) VALUES (3, 123.78, '1998-01-03', 'Personal');
